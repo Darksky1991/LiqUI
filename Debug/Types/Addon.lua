@@ -19,6 +19,9 @@
 ---@field Mixins LiqUI_Mixins
 ---@field Constants LiqUI_Constants
 ---@field Logger LiqUI_Logger
+---@field Events LiqUI_Events
+---@field Data LiqUI_Data
+---@field EJScan LiqUI_EJScan
 ---@field elements table<string, fun(options: table): any>
 ---@field created table<string, table<string, any>>
 ---@field registeredAddons table<string, LiqUI_RegisteredAddon>

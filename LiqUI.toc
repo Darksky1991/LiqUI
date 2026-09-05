@@ -16,5 +16,8 @@ Debug\Types\Logger.lua
 Debug\Types\Scroll.lua
 Debug\Types\Table.lua
 Debug\Types\Window.lua
+Debug\Types\Data.lua
+Debug\Types\EJScan.lua
+Debug\Types\Events.lua
 Debug\Tests\Gallery.lua
 #@end-debug@

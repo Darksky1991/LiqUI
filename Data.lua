@@ -7,16 +7,24 @@ end
 ---@class LiqUI_Data
 local Data = {
   gameDataLoaded = false,
+  cache = {
+    seasonID = nil,
+    seasonDisplayID = nil,
+    classes = {},
+    upgradeByBonusID = nil,
+  },
+  dungeons = {},
+  raids = {},
+  raidDifficulties = {},
+  seasons = {},
+  expansions = {},
+  inventorySlots = {},
+  upgradeSeasons = {},
+  craftedSeasonBonusIDs = {},
 }
 LiqUI.Data = Data
 
 local TableForEach = LiqUI.Utils.TableForEach
-
-Data.cache = {
-  seasonID = nil,
-  seasonDisplayID = nil,
-  classes = {},
-}
 
 ---@param journalEncounterID number
 ---@return LiqUI_Encounter|nil
@@ -76,12 +84,7 @@ function Data:GetJournalInstanceByID(journalInstanceID)
 end
 
 function Data:loadGameData()
-  local seasonID = self:GetCurrentSeason()
-
-  TableForEach(self.raids, function(raid)
-    if raid.seasonID ~= seasonID then
-      return
-    end
+  TableForEach(self:GetRaids(), function(raid)
     local encounterIndex = 1
     EJ_SelectInstance(raid.journalInstanceID)
     local _, _, bossID = EJ_GetEncounterInfoByIndex(encounterIndex, raid.journalInstanceID)
@@ -112,10 +115,7 @@ function Data:loadGameData()
     raid.modifiedInstanceInfo = C_ModifiedInstance.GetModifiedInstanceInfoFromMapID(raid.instanceID)
   end)
 
-  TableForEach(self.dungeons, function(dungeon)
-    if dungeon.seasonID ~= seasonID then
-      return
-    end
+  TableForEach(self:GetDungeons(), function(dungeon)
     local dungeonName, _, dungeonTimeLimit, dungeonTexture = C_ChallengeMode.GetMapUIInfo(dungeon.challengeModeID)
     dungeon.name = dungeonName
     dungeon.time = dungeonTimeLimit

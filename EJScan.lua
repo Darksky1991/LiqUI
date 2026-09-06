@@ -7,20 +7,17 @@ end
 ---@class LiqUI_EJScan
 local EJScan = {
   progressListeners = {},
+  itemCache = {
+    seasonID = 0,
+    lastUpdate = 0,
+    items = {},
+  },
 }
 LiqUI.EJScan = EJScan
 
 local Data = LiqUI.Data
 local TableFilter = LiqUI.Utils.TableFilter
 local TableForEach = LiqUI.Utils.TableForEach
-
----@type LiqUI_EJScanCache
-local itemCache = {
-  seasonID = 0,
-  lastUpdate = 0,
-  items = {},
-}
-EJScan.itemCache = itemCache
 
 ---@param callback LiqUI_EJScanProgressCallback
 function EJScan:RegisterProgress(callback)

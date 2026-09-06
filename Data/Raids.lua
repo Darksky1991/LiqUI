@@ -22,10 +22,10 @@ Data.raids = {
 
 ---@type LiqUI_RaidDifficulty[]
 Data.raidDifficulties = {
-  {id = DifficultyUtil.ID.PrimaryRaidLFR, order = 1, abbr = "L", name = "Looking For Raid", short = "LFR"},
-  {id = DifficultyUtil.ID.PrimaryRaidNormal, order = 2, abbr = "N", name = "Normal", short = "N"},
-  {id = DifficultyUtil.ID.PrimaryRaidHeroic, order = 3, abbr = "H", name = "Heroic", short = "H"},
-  {id = DifficultyUtil.ID.PrimaryRaidMythic, order = 4, abbr = "M", name = "Mythic", short = "M"},
+  {id = DifficultyUtil.ID.PrimaryRaidLFR, order = 1, abbr = "L", name = "Looking For Raid", short = "LFR", color = UNCOMMON_GREEN_COLOR},
+  {id = DifficultyUtil.ID.PrimaryRaidNormal, order = 2, abbr = "N", name = "Normal", color = RARE_BLUE_COLOR},
+  {id = DifficultyUtil.ID.PrimaryRaidHeroic, order = 3, abbr = "H", name = "Heroic", color = EPIC_PURPLE_COLOR},
+  {id = DifficultyUtil.ID.PrimaryRaidMythic, order = 4, abbr = "M", name = "Mythic", color = LEGENDARY_ORANGE_COLOR},
 }
 
 ---@return LiqUI_Raid[]

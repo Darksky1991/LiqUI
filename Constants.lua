@@ -171,3 +171,9 @@ Constants.settings = {
     rowSpacingAfterDescription = 10,
   },
 }
+
+---@enum LiqUI_InventorySlotSideId
+Constants.inventorySlotSides = {
+  LEFT = "LEFT",
+  RIGHT = "RIGHT",
+}

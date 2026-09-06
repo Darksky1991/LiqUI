@@ -7,6 +7,7 @@ end
 ---@class LiqUI_Data
 local Data = LiqUI.Data
 
+local TableForEach = LiqUI.Utils.TableForEach
 local TableGet = LiqUI.Utils.TableGet
 
 ---@type LiqUI_Season[]
@@ -14,6 +15,16 @@ Data.seasons = {
   {seasonID = 17, seasonDisplayID = 1, expansionID = Enum.ExpansionLevel.Midnight, name = "Midnight - Season 1", description = "The Voidspire, March on Quel'Danas, The Dreamrift, Sporefall"},
   {seasonID = 18, seasonDisplayID = 2, expansionID = Enum.ExpansionLevel.Midnight, name = "Midnight - Season 2", description = "The Tidebound Grotto, The Venomous Abyss"},
 }
+
+---@return LiqUI_Season[]
+function Data:GetSeasons()
+  ---@type LiqUI_Season[]
+  local seasons = {}
+  TableForEach(self.seasons, function(season)
+    table.insert(seasons, season)
+  end)
+  return seasons
+end
 
 ---@return number
 ---@return number
@@ -28,10 +39,11 @@ function Data:GetCurrentSeason()
     return -1, -1
   end
 
-  local season = TableGet(self.seasons, "seasonID", seasonID)
+  local seasons = self:GetSeasons()
+  local season = TableGet(seasons, "seasonID", seasonID)
   local currentExpansionLevel = GetExpansionLevel()
   if season and currentExpansionLevel and season.expansionID < currentExpansionLevel then
-    local nextSeason = TableGet(self.seasons, "expansionID", currentExpansionLevel)
+    local nextSeason = TableGet(seasons, "expansionID", currentExpansionLevel)
     if nextSeason then
       seasonID = nextSeason.seasonID
       seasonDisplayID = nextSeason.seasonDisplayID

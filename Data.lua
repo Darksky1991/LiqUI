@@ -4,8 +4,7 @@ if not LiqUI then
   return
 end
 
----@class LiqUI_Data
-local Data = {
+LiqUI.Data = LiqUI.Data or {
   gameDataLoaded = false,
   cache = {
     seasonID = nil,
@@ -22,8 +21,9 @@ local Data = {
   upgradeSeasons = {},
   craftedSeasonBonusIDs = {},
 }
-LiqUI.Data = Data
 
+---@class LiqUI_Data
+local Data = LiqUI.Data
 local TableForEach = LiqUI.Utils.TableForEach
 
 ---@param journalEncounterID number

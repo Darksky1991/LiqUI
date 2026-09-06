@@ -21,3 +21,7 @@
 ---@field Hide fun(self: LiqUI_LoggerHandle)
 
 ---@class LiqUI_Logger
+---@field handles table<string, LiqUI_LoggerHandle>
+---@field selectedAddonName string|nil
+---@field window LiqUI_WindowInstance|nil
+---@field refreshPending boolean

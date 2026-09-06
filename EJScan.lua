@@ -4,49 +4,89 @@ if not LiqUI or not LiqUI.Data then
   return
 end
 
----@class LiqUI_EJScan
-local EJScan = {
-  progressListeners = {},
+LiqUI.EJScan = LiqUI.EJScan or {
+  hosts = {},
   itemCache = {
     seasonID = 0,
     lastUpdate = 0,
     items = {},
   },
-}
-LiqUI.EJScan = EJScan
-
-local Data = LiqUI.Data
-local TableFilter = LiqUI.Utils.TableFilter
-local TableForEach = LiqUI.Utils.TableForEach
-
----@param callback LiqUI_EJScanProgressCallback
-function EJScan:RegisterProgress(callback)
-  table.insert(self.progressListeners, callback)
-end
-
----@param text string|nil
----@param progress number|nil
-function EJScan:FireProgress(text, progress)
-  TableForEach(self.progressListeners, function(listener)
-    listener(text, progress)
-  end)
-end
-
-function EJScan:HideProgress()
-  TableForEach(self.progressListeners, function(listener)
-    listener(nil, nil)
-  end)
-end
-
----@type LiqUI_EJScanCallback[]
-local scanCallbacks = {}
-
----@type LiqUI_EJScanJob
-local scan = {
-  callbacks = scanCallbacks,
   state = nil,
   counter = 0,
 }
+
+---@class LiqUI_EJScan
+local EJScan = LiqUI.EJScan
+local Data = LiqUI.Data
+local Utils = LiqUI.Utils
+
+---@param bag LiqUI_EJScanCache
+---@param seasonID number
+---@return boolean
+local function CacheBagIsComplete(bag, seasonID)
+  if bag.seasonID ~= seasonID or bag.lastUpdate <= 0 then
+    return false
+  end
+  local hasUnloadedRow = false
+  Utils.TableForEach(bag.items, function(row)
+    if row.itemID and row.loaded == false then
+      hasUnloadedRow = true
+    end
+  end)
+  return not hasUnloadedRow
+end
+
+---@param dest LiqUI_EJScanCache
+---@param source LiqUI_EJScanCache
+local function CopyCache(dest, source)
+  dest.seasonID = source.seasonID
+  dest.lastUpdate = source.lastUpdate
+  dest.items = Utils.TableCopy(source.items)
+end
+
+local function SyncBoundCaches()
+  if EJScan.state then
+    return
+  end
+  local seasonID = Data:GetCurrentSeason()
+  if seasonID <= 0 then
+    return
+  end
+  ---@type LiqUI_EJScanCache|nil
+  local winner = nil
+  if CacheBagIsComplete(EJScan.itemCache, seasonID) then
+    winner = EJScan.itemCache
+  end
+  Utils.TableForEach(EJScan.hosts, function(host)
+    if CacheBagIsComplete(host.storage, seasonID) then
+      if not winner or host.storage.lastUpdate > winner.lastUpdate then
+        winner = host.storage
+      end
+    end
+  end)
+  if not winner then
+    return
+  end
+  local newestCache = winner
+  if newestCache ~= EJScan.itemCache then
+    CopyCache(EJScan.itemCache, newestCache)
+  end
+  Utils.TableForEach(EJScan.hosts, function(host)
+    local bag = host.storage
+    if bag.seasonID ~= newestCache.seasonID or bag.lastUpdate < newestCache.lastUpdate then
+      CopyCache(bag, newestCache)
+    end
+  end)
+end
+
+---@param event LiqUI_EJScanEvent
+local function EventFire(event)
+  Utils.TableForEach(EJScan.hosts, function(host)
+    if host.onEvent then
+      host.onEvent(event)
+    end
+  end)
+end
 
 -- Spread work across frames; 0 queues the entire scan into one burst and tanks FPS.
 local ScanScheduleDelay = 0.05
@@ -82,25 +122,23 @@ local function JournalSetDifficulty(instanceType)
   end
 end
 
----@param text string
----@param progress number|nil
-local function ProgressShow(text, progress)
-  EJScan:FireProgress(text, progress)
+local function CacheNotifyReady()
+  ---@type LiqUI_EJScanEvent
+  local event = { name = "ready" }
+  EventFire(event)
 end
 
-local function ProgressHide()
-  EJScan:HideProgress()
-end
-
-local function CacheInvokeCallbacks()
-  ---@type LiqUI_EJScanCallback[]
-  local pending = {}
-  TableForEach(scan.callbacks, function(callback)
-    table.insert(pending, callback)
-  end)
-  wipe(scan.callbacks)
-  TableForEach(pending, function(callback)
-    callback()
+---@param state LiqUI_EJScanState
+---@param instanceType LiqUI_EJScanInstanceType
+---@param instances (LiqUI_Dungeon|LiqUI_Raid)[]
+local function AppendScanInstances(state, instanceType, instances)
+  Utils.TableForEach(instances, function(instance)
+    local journalInstanceID = instance.journalInstanceID
+    if journalInstanceID and journalInstanceID > 0 then
+      ---@type LiqUI_EJScanInstance
+      local instanceEntry = { instance = instance, instanceType = instanceType }
+      table.insert(state.instances, instanceEntry)
+    end
   end)
 end
 
@@ -252,12 +290,12 @@ local function JournalSyncInstance(journalInstanceID, instanceType)
   end
 
   local primed = JournalShowForSync()
-  if primed and scan.state then
-    scan.state.journalPrimedForScan = true
+  if primed and EJScan.state then
+    EJScan.state.journalPrimedForScan = true
   end
   JournalDisplayInstance(journalInstanceID)
 
-  if primed and scan.state and not scan.state.journalUIWasShown and EncounterJournal and EncounterJournal:IsShown() then
+  if primed and EJScan.state and not EJScan.state.journalUIWasShown and EncounterJournal and EncounterJournal:IsShown() then
     HideUIPanel(EncounterJournal)
   end
 end
@@ -484,7 +522,7 @@ end
 local function CacheCountProgress(cache)
   local loadedCount = 0
   local totalCount = 0
-  TableForEach(cache.items, function(row)
+  Utils.TableForEach(cache.items, function(row)
     if row.itemID then
       totalCount = totalCount + 1
       if row.loaded then
@@ -498,19 +536,19 @@ end
 --- Pass 2 done: stamp cache, clear scan, notify waiters.
 ---@param state LiqUI_EJScanState
 local function CacheLoaded(state)
-  if not scan.state or scan.state.scanId ~= state.scanId then
+  if not EJScan.state or EJScan.state.scanId ~= state.scanId then
     return
   end
   local cache = state.cache
-  TableForEach(cache.items, function(row)
+  Utils.TableForEach(cache.items, function(row)
     if row.itemID then
       row.loaded = true
     end
   end)
   cache.lastUpdate = time()
-  scan.state = nil
-  ProgressHide()
-  CacheInvokeCallbacks()
+  EJScan.state = nil
+  SyncBoundCaches()
+  CacheNotifyReady()
 end
 
 ---@param itemID number
@@ -541,13 +579,21 @@ local function CacheOnItemLoad(itemID, state)
     row.loaded = true
   end
 
-  if not scan.state or scan.state.scanId ~= state.scanId then
+  if not EJScan.state or EJScan.state.scanId ~= state.scanId then
     return
   end
 
   local loadedCount, totalCount = CacheCountProgress(cache)
   if loadedCount < totalCount then
-    ProgressShow(format("Loading item data... %d / %d", loadedCount, totalCount), loadedCount / totalCount)
+    ---@type LiqUI_EJScanEventCounts
+    local counts = { done = loadedCount, total = totalCount }
+    ---@type LiqUI_EJScanEvent
+    local event = {
+      name = "loading",
+      progress = loadedCount / totalCount,
+      counts = counts,
+    }
+    EventFire(event)
     return
   end
   CacheLoaded(state)
@@ -559,7 +605,7 @@ local function CacheLoadItems(state)
   local cache = state.cache
   cache.seasonID = Data:GetCurrentSeason()
 
-  TableForEach(cache.items, function(row)
+  Utils.TableForEach(cache.items, function(row)
     if row.itemID then
       row.loaded = false
     end
@@ -571,9 +617,17 @@ local function CacheLoadItems(state)
     return
   end
 
-  ProgressShow(format("Loading item data... 0 / %d", totalCount), 0)
+  ---@type LiqUI_EJScanEventCounts
+  local counts = { done = 0, total = totalCount }
+  ---@type LiqUI_EJScanEvent
+  local event = {
+    name = "loading",
+    progress = 0,
+    counts = counts,
+  }
+  EventFire(event)
 
-  TableForEach(cache.items, function(item)
+  Utils.TableForEach(cache.items, function(item)
     local itemID = item.itemID
     if itemID then
       Item:CreateFromItemID(itemID):ContinueOnItemLoad(function()
@@ -583,7 +637,7 @@ local function CacheLoadItems(state)
   end)
 
   C_Timer.After(CacheLoadTimeoutSec, function()
-    if not scan.state or scan.state.scanId ~= state.scanId then
+    if not EJScan.state or EJScan.state.scanId ~= state.scanId then
       return
     end
     local timeoutLoadedCount, timeoutTotalCount = CacheCountProgress(cache)
@@ -595,7 +649,7 @@ local function CacheLoadItems(state)
 end
 
 local function ScanFinish()
-  local state = scan.state
+  local state = EJScan.state
   if not state then
     return
   end
@@ -621,7 +675,7 @@ end
 local ScanSchedule
 
 local function ScanStepSchedule()
-  local state = scan.state
+  local state = EJScan.state
   if not state then
     return
   end
@@ -633,13 +687,15 @@ end
 
 ---@param expectedScanId number
 ScanSchedule = function(expectedScanId)
-  local state = scan.state
+  local state = EJScan.state
   if not state or state.scanId ~= expectedScanId then
     return
   end
 
   if state.instanceIndex > #state.instances then
-    ProgressShow("Scan complete.", 1)
+    ---@type LiqUI_EJScanEvent
+    local event = { name = "complete", progress = 1 }
+    EventFire(event)
     ScanFinish()
     return
   end
@@ -699,9 +755,19 @@ ScanSchedule = function(expectedScanId)
   end
 
   state.step = state.step + 1
-  local progress = state.step / state.totalSteps
-  local instanceName = entry.instance.name or entry.instance.abbr or "..."
-  ProgressShow(format("Scanning %s - %d%%", instanceName, math.floor(progress * 100)), progress)
+  ---@type LiqUI_EJScanEventInstance
+  local instance = {
+    journalInstanceID = entry.instance.journalInstanceID,
+    name = entry.instance.name,
+    instanceType = entry.instanceType,
+  }
+  ---@type LiqUI_EJScanEvent
+  local event = {
+    name = "encounter",
+    progress = state.step / state.totalSteps,
+    instance = instance,
+  }
+  EventFire(event)
 
   ScanCursorAdvance(state)
   ScanStepSchedule()
@@ -710,63 +776,88 @@ end
 ---@param reason string|nil
 ---@param restoreJournal boolean|nil When false, skip EJ filter restore (e.g. immediately starting a new scan).
 function EJScan:ScanCancel(reason, restoreJournal)
-  if not scan.state then
+  if not EJScan.state then
     return
   end
 
-  scan.counter = scan.counter + 1
-  local state = scan.state
-  scan.state = nil
-  ProgressHide()
+  EJScan.counter = EJScan.counter + 1
+  local state = EJScan.state
+  EJScan.state = nil
+  ---@type LiqUI_EJScanEvent
+  local event = { name = "cancelled" }
+  EventFire(event)
 
   if restoreJournal ~= false then
     JournalRestore(state)
   end
 end
 
+---@param options LiqUI_EJScanOptions
+function EJScan:Register(options)
+  if type(options) ~= "table" then
+    error("EJScan:Register requires options", 2)
+  end
+  if type(options.name) ~= "string" or options.name == "" then
+    error("EJScan:Register requires name", 2)
+  end
+  if type(options.storage) ~= "table" then
+    error("EJScan:Register requires storage", 2)
+  end
+  if options.onEvent ~= nil and type(options.onEvent) ~= "function" then
+    error("EJScan:Register onEvent must be a function", 2)
+  end
+  ---@type LiqUI_EJScanOptions
+  local host = {
+    name = options.name,
+    storage = options.storage,
+    onEvent = options.onEvent,
+  }
+  self.hosts[options.name] = host
+  SyncBoundCaches()
+end
+
 ---@return boolean
 function EJScan:IsCacheReady()
-  local cache = self.itemCache
   local seasonID = Data:GetCurrentSeason()
-  if seasonID <= 0 or cache.seasonID ~= seasonID or cache.lastUpdate <= 0 then
+  if seasonID <= 0 then
     return false
   end
-  local hasUnloadedRow = false
-  TableForEach(cache.items, function(row)
-    if row.itemID and row.loaded == false then
-      hasUnloadedRow = true
-    end
-  end)
-  return not hasUnloadedRow
+  return CacheBagIsComplete(self.itemCache, seasonID)
 end
 
----@param onComplete fun()|nil
-function EJScan:ClearCache(onComplete)
-  if scan.state then
+---@return boolean
+function EJScan:IsScanning()
+  return EJScan.state ~= nil
+end
+
+function EJScan:ClearCache()
+  if EJScan.state then
     self:ScanCancel("clear", false)
   end
-  wipe(scan.callbacks)
   local cache = self.itemCache
-  if cache then
-    cache.items = {}
-    cache.seasonID = 0
-    cache.lastUpdate = 0
-  end
-  if onComplete then
-    onComplete()
-  end
+  cache.items = {}
+  cache.seasonID = 0
+  cache.lastUpdate = 0
+  Utils.TableForEach(EJScan.hosts, function(host)
+    local bag = host.storage
+    bag.items = {}
+    bag.seasonID = 0
+    bag.lastUpdate = 0
+  end)
+  ---@type LiqUI_EJScanEvent
+  local event = { name = "cleared" }
+  EventFire(event)
 end
 
----@param onComplete fun()|nil
-function EJScan:GetCache(onComplete)
-  if onComplete then
-    table.insert(scan.callbacks, onComplete)
-  end
+function EJScan:GetCache()
   if self:IsCacheReady() then
-    CacheInvokeCallbacks()
+    SyncBoundCaches()
+    ---@type LiqUI_EJScanEvent
+    local event = { name = "current" }
+    EventFire(event)
     return
   end
-  if scan.state then
+  if EJScan.state then
     return
   end
   if not Data:RequestGameData() then
@@ -775,18 +866,20 @@ function EJScan:GetCache(onComplete)
     end)
     return
   end
-
-  local cache = self.itemCache
-  if not cache then
+  SyncBoundCaches()
+  if self:IsCacheReady() then
+    CacheNotifyReady()
     return
   end
 
-  scan.counter = scan.counter + 1
+  local cache = self.itemCache
+
+  EJScan.counter = EJScan.counter + 1
 
   ---@type LiqUI_EJScanClassSpec[]
   local classSpecs = {}
-  TableForEach(Data.cache.classes, function(classEntry, classID)
-    TableForEach(classEntry.specs, function(spec)
+  Utils.TableForEach(Data.cache.classes, function(classEntry, classID)
+    Utils.TableForEach(classEntry.specs, function(spec)
       ---@type LiqUI_EJScanClassSpec
       local classSpec = {classID = classID, specID = spec.specID}
       table.insert(classSpecs, classSpec)
@@ -795,7 +888,7 @@ function EJScan:GetCache(onComplete)
 
   ---@type LiqUI_EJScanState
   local state = {
-    scanId = scan.counter,
+    scanId = EJScan.counter,
     cache = cache,
     journalFilters = ScanFilterSave(),
     journalUIWasShown = false,
@@ -810,7 +903,7 @@ function EJScan:GetCache(onComplete)
     step = 0,
     totalSteps = ScanMinProgressSteps,
   }
-  scan.state = state
+  EJScan.state = state
 
   JournalPrepareFilters()
   state.journalUIWasShown = JournalHide()
@@ -818,26 +911,16 @@ function EJScan:GetCache(onComplete)
   cache.items = {}
   cache.seasonID = 0
   cache.lastUpdate = 0
-  ProgressShow("Scanning Encounter Journal...", 0)
+  ---@type LiqUI_EJScanEvent
+  local event = { name = "start", progress = 0 }
+  EventFire(event)
 
-  TableForEach(TableFilter(Data:GetRaids(), function(instance)
-                 return instance.journalInstanceID and instance.journalInstanceID > 0
-               end), function(instance)
-                 ---@type LiqUI_EJScanInstance
-                 local instanceEntry = {instance = instance, instanceType = "raid"}
-                 table.insert(state.instances, instanceEntry)
-               end)
-  TableForEach(TableFilter(Data:GetDungeons(), function(instance)
-                 return instance.journalInstanceID and instance.journalInstanceID > 0
-               end), function(instance)
-                 ---@type LiqUI_EJScanInstance
-                 local instanceEntry = {instance = instance, instanceType = "dungeon"}
-                 table.insert(state.instances, instanceEntry)
-               end)
+  AppendScanInstances(state, "raid", Data:GetRaids())
+  AppendScanInstances(state, "dungeon", Data:GetDungeons())
 
   local bossCount = 0
-  TableForEach(state.instances, function(instanceEntry)
-    TableForEach(instanceEntry.instance.encounters or {}, function(encounter)
+  Utils.TableForEach(state.instances, function(instanceEntry)
+    Utils.TableForEach(instanceEntry.instance.encounters or {}, function(encounter)
       if encounter.journalEncounterID and encounter.name and encounter.name ~= "" then
         bossCount = bossCount + 1
       end

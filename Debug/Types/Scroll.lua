@@ -4,6 +4,9 @@
 ---@field vertical boolean?
 ---@field wheelPanExtent number?
 
+---@class LiqUI_ScrollBoxOptions
+---@field barWidth number?
+
 ---@class LiqUI_ScrollBox : WowScrollBox
 ---@field scrollChild Frame
 ---@field ScrollBar MinimalScrollBar

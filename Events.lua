@@ -4,13 +4,14 @@ if not LiqUI then
   return
 end
 
----@class LiqUI_Events
-local Events = {}
-LiqUI.Events = Events
-Events.handlers = {}
-Events.runtime = {pendingByEventName = {}}
-Events.frame = CreateFrame("Frame", "LiqUIEventsFrame")
+LiqUI.Events = LiqUI.Events or {
+  handlers = {},
+  runtime = {pendingByEventName = {}},
+  frame = CreateFrame("Frame", "LiqUIEventsFrame"),
+}
 
+---@class LiqUI_Events
+local Events = LiqUI.Events
 local BUCKET_INTERVAL_SEC = 2
 
 ---@param packed LiqUI_EventPackedVarargs

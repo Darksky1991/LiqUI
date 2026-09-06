@@ -1,5 +1,12 @@
 ---@alias ColorTable { r: number, g: number, b: number, a: number }
 
+---@class LiqUI_LabelAnchor
+---@field point FramePoint?
+---@field relativeTo Region?
+---@field relativePoint FramePoint?
+---@field x number?
+---@field y number?
+
 ---@class LiqUI_Constants
 
 ---@class LiqUI_DB

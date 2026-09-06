@@ -11,9 +11,9 @@ LiqUI.minor = MINOR
 
 _G.LiqUI = LiqUI
 
-LiqUI.elements = {}
-LiqUI.created = {}
-LiqUI.registeredAddons = {}
+LiqUI.elements = LiqUI.elements or {}
+LiqUI.created = LiqUI.created or {}
+LiqUI.registeredAddons = LiqUI.registeredAddons or {}
 
 ---@param elementType string
 ---@param createFn fun(options: table): any

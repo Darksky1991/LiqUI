@@ -1,7 +1,6 @@
----@alias LiqUI_EJScanCallback fun()
+---@alias LiqUI_EJScanEventName "start" | "encounter" | "loading" | "complete" | "ready" | "current" | "cleared" | "cancelled"
 ---@alias LiqUI_EJScanInstanceType "raid" | "dungeon"
 ---@alias LiqUI_EJScanItemStats table<string, number>
----@alias LiqUI_EJScanProgressCallback fun(text: string|nil, progress: number|nil)
 
 ---@class LiqUI_EJScanCache
 ---@field seasonID number
@@ -35,11 +34,6 @@
 ---@field instance LiqUI_Dungeon|LiqUI_Raid
 ---@field instanceType LiqUI_EJScanInstanceType
 
----@class LiqUI_EJScanJob
----@field callbacks LiqUI_EJScanCallback[]
----@field state LiqUI_EJScanState|nil
----@field counter number
-
 ---@class LiqUI_EJScanJournalFilters
 ---@field tier number
 ---@field difficultyID number
@@ -69,6 +63,28 @@
 ---@field step number
 ---@field totalSteps number
 
+---@class LiqUI_EJScanEventCounts
+---@field done number
+---@field total number
+
+---@class LiqUI_EJScanEventInstance
+---@field journalInstanceID number
+---@field name string
+---@field instanceType LiqUI_EJScanInstanceType
+
+---@class LiqUI_EJScanEvent
+---@field name LiqUI_EJScanEventName
+---@field progress number|nil
+---@field counts LiqUI_EJScanEventCounts|nil
+---@field instance LiqUI_EJScanEventInstance|nil
+
+---@class LiqUI_EJScanOptions
+---@field name string
+---@field storage LiqUI_EJScanCache
+---@field onEvent fun(event: LiqUI_EJScanEvent)?
+
 ---@class LiqUI_EJScan
----@field progressListeners LiqUI_EJScanProgressCallback[]
+---@field hosts table<string, LiqUI_EJScanOptions>
 ---@field itemCache LiqUI_EJScanCache
+---@field state LiqUI_EJScanState|nil
+---@field counter number

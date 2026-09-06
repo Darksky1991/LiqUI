@@ -150,7 +150,7 @@ function Data:loadGameData()
     if className and classFile then
       ---@type LiqUI_Specialization[]
       local specs = {}
-      for specIndex = 1, GetNumSpecializationsForClassID(classID) do
+      for specIndex = 1, C_SpecializationInfo.GetNumSpecializationsForClassID(classID) do
         local specID, name, _, icon = GetSpecializationInfoForClassID(classID, specIndex)
         if specID then
           ---@type LiqUI_Specialization

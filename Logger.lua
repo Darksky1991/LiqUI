@@ -20,10 +20,11 @@ local CLEAR_ICON_SIZE = 12
 local handles = {}
 
 local selectedAddonName = nil
+---@type LiqUI_WindowInstance|nil
 local window = nil
 local refreshPending = false
 
----@param textBox Frame
+---@param textBox ScrollingEditBoxTemplate
 ---@param text string
 ---@param scrollToEnd boolean|nil
 local function applyLogText(textBox, text, scrollToEnd)
@@ -141,7 +142,7 @@ function LiqUI:NewLogger(options)
     return existing
   end
 
-  ---@type LiqUI_LoggerHandle
+  ---@class LiqUI_LoggerHandle
   local handle = {
     name = options.name,
     title = options.title or options.name,

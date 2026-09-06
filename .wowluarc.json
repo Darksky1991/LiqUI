@@ -3,12 +3,16 @@
   "addonRoot": true,
   "flavors": ["retail"],
   "library": ["Libs/"],
+  "inference": {
+    "implicitProtectedPrefix": true
+  },
   "diagnostics": {
-    "disable": [
-      "deprecated",
-      "duplicate-set-field",
-      "inject-field",
-      "undefined-field"
+    "enable": [
+      "need-check-nil",
+      "unknown-param-type",
+      "unknown-return-type",
+      "unknown-local-type",
+      "unknown-field-type"
     ]
   }
 }

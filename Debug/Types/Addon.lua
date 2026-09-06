@@ -27,5 +27,8 @@
 ---@field registeredAddons table<string, LiqUI_RegisteredAddon>
 ---@field minor number
 
+---@class LiqUI_HighlightMixin : Frame
+---@field Highlight Texture?
+
 ---@class LiqUI_Mixins
 ---@field Highlight LiqUI_HighlightMixin

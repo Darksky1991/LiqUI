@@ -178,11 +178,10 @@ end
 
 ---Highlight mixin: overlay for hover/selection. Use Mixin(frame, LiqUI.Mixins.Highlight).
 ---Call SetVertexColor(r,g,b,a) then ShowHighlight() / HideHighlight(); does not override frame Show/Hide.
----@class LiqUI_HighlightMixin
----@type LiqUI_Mixins
+---@class LiqUI_Mixins
 local Mixins = {}
 LiqUI.Mixins = Mixins
----@type LiqUI_HighlightMixin
+---@class LiqUI_HighlightMixin
 local Highlight = {}
 Mixins.Highlight = Highlight
 
@@ -206,7 +205,9 @@ function Highlight:ShowHighlight(r, g, b, a)
   elseif r then
     self:SetHighlightColor(r, g, b, a)
   end
-  self.Highlight:Show()
+  if self.Highlight then
+    self.Highlight:Show()
+  end
 end
 
 function Highlight:HideHighlight()
@@ -232,9 +233,10 @@ function Utils.SetBackgroundColor(parent, r, g, b, a)
     r, g, b, a = r.r, r.g, r.b, r.a
   end
 
-  if type(r) == "nil" then
-    r, g, b, a = 0, 0, 0, 0.1
-  end
+  r = r or 0
+  g = g or 0
+  b = b or 0
+  a = a or 0.1
 
   parent.Background:SetVertexColor(r, g, b, a)
 end
@@ -422,7 +424,7 @@ local function styleScrollBarThumb(thumb, crossAxisSize, isHorizontal)
   end
 end
 
----@param scrollBar EventFrame
+---@param scrollBar MinimalScrollBar
 function Utils.StyleVerticalScrollBar(scrollBar)
   local scrollbarThickness = LiqUI.Constants.layout.sizes.scrollbar.thickness
   scrollBar:SetWidth(scrollbarThickness)
@@ -434,7 +436,7 @@ function Utils.StyleVerticalScrollBar(scrollBar)
   styleScrollBarThumb(scrollBar:GetThumb(), scrollbarThickness, false)
 end
 
----@param scrollBar EventFrame
+---@param scrollBar EventFrame & WowTrimHorizontalScrollBar
 function Utils.StyleHorizontalScrollBar(scrollBar)
   local scrollbarThickness = LiqUI.Constants.layout.sizes.scrollbar.thickness
   scrollBar:SetHeight(scrollbarThickness)
@@ -448,7 +450,7 @@ end
 
 ---Wheel hits row/column buttons, not the scroll box. Forward to Blizzard scroll APIs on the outer box.
 ---@param frame Frame
----@param scrollBox Frame
+---@param scrollBox WowScrollBox
 function Utils.BindScrollBoxMouseWheel(frame, scrollBox)
   frame:EnableMouseWheel(true)
   frame:SetScript("OnMouseWheel", function(_, delta)
@@ -460,7 +462,7 @@ function Utils.BindScrollBoxMouseWheel(frame, scrollBox)
   end)
 end
 
----@param scrollBox Frame
+---@param scrollBox WowScrollBox
 ---@param panExtent number
 local function applyOuterWheelPanExtent(scrollBox, panExtent)
   if panExtent > 0 then
@@ -468,7 +470,7 @@ local function applyOuterWheelPanExtent(scrollBox, panExtent)
   end
 end
 
----@param scrollBox Frame
+---@param scrollBox WowScrollBox
 local function hideScrollBoxShadows(scrollBox)
   if scrollBox.Shadows then
     scrollBox.Shadows:Hide()
@@ -651,7 +653,7 @@ function Utils.CreateScrollArea(parent, options)
     LiqUI.Constants.layout.sizes.scrollbar.horizontalWheelPanExtent
   local wheelPanExtent = (options and options.wheelPanExtent) or defaultPanExtent
 
-  ---@type LiqUI_ScrollArea
+  ---@class LiqUI_ScrollArea
   local scrollArea = {
     container = containerFrame,
     content = contentFrame,
@@ -664,7 +666,7 @@ function Utils.CreateScrollArea(parent, options)
     wheelPanExtent = wheelPanExtent,
   }
 
-  ---@return Frame?
+  ---@return WowScrollBox?
   function scrollArea:GetWheelScrollBox()
     if self.verticalScrollBox then
       return self.verticalScrollBox
@@ -780,7 +782,7 @@ end
 ---@param parent Frame
 ---@param name string?
 ---@param options { barWidth?: number }?
----@return Frame scrollBox WowScrollBox with .scrollChild, :FullUpdate(), :ScrollToBegin()
+---@return LiqUI_ScrollBox
 function Utils.CreateScrollBox(parent, name, options)
   options = options or {}
   local barWidth = options.barWidth or 12
@@ -789,6 +791,7 @@ function Utils.CreateScrollBox(parent, name, options)
     error("LiqUI.CreateScrollBox requires Blizzard_SharedXML (ScrollUtil, CreateScrollBoxLinearView). Ensure UI is loaded.")
   end
 
+  ---@class LiqUI_ScrollBox
   local scrollBox = CreateFrame("Frame", name, parent, "WowScrollBox")
   local scrollBar = CreateFrame("EventFrame", nil, parent, "MinimalScrollBar")
   scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 0, 0)

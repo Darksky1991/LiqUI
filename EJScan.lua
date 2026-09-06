@@ -134,6 +134,15 @@ local function ScanFilterSlotClear(refreshUI)
   end
 end
 
+---@param encounterInfo any
+---@return number|nil
+local function getEncounterInfoTab(encounterInfo)
+  if not encounterInfo then
+    return nil
+  end
+  return encounterInfo.tab
+end
+
 --- Loot tab pins slot filter state; leave overview even when EJ is hidden (e.g. closed on loot tab).
 local function JournalSetTab()
   JournalLoadUi()
@@ -141,7 +150,7 @@ local function JournalSetTab()
     return
   end
   local encounterInfo = EncounterJournal.encounter and EncounterJournal.encounter.info
-  if not encounterInfo or encounterInfo.tab ~= JournalTabLoot then
+  if getEncounterInfoTab(encounterInfo) ~= JournalTabLoot then
     return
   end
   ---@type fun(tabType: number)|nil
@@ -360,7 +369,7 @@ local function ScanFilterSave()
     local encounterFrame = EncounterJournal.encounter
     local encounterInfo = encounterFrame and encounterFrame.info
     if encounterInfo and encounterFrame:IsShown() then
-      filters.encounterTab = encounterInfo.tab
+      filters.encounterTab = getEncounterInfoTab(encounterInfo)
     end
     if EncounterJournal.selectedTab then
       filters.selectedTab = EncounterJournal.selectedTab
@@ -511,7 +520,7 @@ local function CacheOnItemLoad(itemID, state)
   local row = cache.items[itemID]
   if row then
     if (not row.name or row.name == "") then
-      row.name = GetItemInfo(itemID) or row.name
+      row.name = C_Item.GetItemInfo(itemID) or row.name
     end
     row.quality = C_Item.GetItemQualityByID(itemID) or row.quality
     if row.link and next(row.stats) == nil then

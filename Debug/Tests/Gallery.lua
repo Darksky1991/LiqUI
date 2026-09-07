@@ -168,8 +168,31 @@ local function ensureGallery()
 
   galleryTable = LiqUI:NewElement("Table", tableConfig)
   galleryTable:SetParent(galleryWindow.body)
-  galleryTable:SetAllPoints(galleryWindow.body)
+  galleryTable:SetPoint("TOPLEFT", galleryWindow.body, "TOPLEFT", 0, 0)
+  galleryTable:SetPoint("BOTTOMRIGHT", galleryWindow.body, "BOTTOMRIGHT", 0, 40)
   galleryTable:SetData(galleryData())
+
+  local buttonBar = CreateFrame("Frame", nil, galleryWindow.body)
+  buttonBar:SetPoint("BOTTOMLEFT", galleryWindow.body, "BOTTOMLEFT", 8, 8)
+  buttonBar:SetPoint("BOTTOMRIGHT", galleryWindow.body, "BOTTOMRIGHT", -8, 8)
+  buttonBar:SetHeight(24)
+
+  local enabledButton = LiqUI:NewElement("Button", {
+    name = "LiqUIGalleryEnabled",
+    parent = buttonBar,
+    text = "Enabled",
+    width = 100,
+  })
+  enabledButton:SetPoint("LEFT", buttonBar, "LEFT", 0, 0)
+
+  local disabledButton = LiqUI:NewElement("Button", {
+    name = "LiqUIGalleryDisabled",
+    parent = buttonBar,
+    text = "Disabled",
+    width = 100,
+    enabled = false,
+  })
+  disabledButton:SetPoint("LEFT", enabledButton, "RIGHT", 8, 0)
 end
 
 SLASH_LIQUI1 = "/liqui"

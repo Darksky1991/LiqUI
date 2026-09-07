@@ -13,6 +13,7 @@
   <Script file="Data/UpgradeTracks.lua" />
   <Script file="Elements/Window.lua" />
   <Script file="Elements/Table.lua" />
+  <Script file="Elements/Button.lua" />
   <Script file="Logger.lua" />
   <Script file="EJScan.lua" />
 </Ui>

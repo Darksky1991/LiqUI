@@ -19,7 +19,8 @@ LiqUI.Data = LiqUI.Data or {
   expansions = {},
   inventorySlots = {},
   upgradeSeasons = {},
-  craftedSeasonBonusIDs = {},
+  craftedItemLevelBonusIDs = {},
+  craftedQualityLadders = {},
 }
 
 ---@class LiqUI_Data

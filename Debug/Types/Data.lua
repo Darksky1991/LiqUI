@@ -68,7 +68,7 @@
 ---@field canEnchant boolean
 ---@field canSocket boolean
 
----@alias LiqUI_UpgradeTrackKind "crest" | "label" | "crafted"
+---@alias LiqUI_UpgradeTrackKind "crest" | "label"
 
 ---@class LiqUI_UpgradeTrack
 ---@field kind LiqUI_UpgradeTrackKind
@@ -86,6 +86,15 @@
 ---@field track LiqUI_UpgradeTrack
 ---@field season LiqUI_UpgradeSeason
 ---@field index number
+
+---@class LiqUI_CraftedItemLevelBonus
+---@field seasonID number
+---@field itemLevel number
+---@field name string?
+
+---@class LiqUI_CraftedQualityLadder
+---@field maxOffset number
+---@field bonusIDs number[]
 
 ---@class LiqUI_Specialization
 ---@field specID number
@@ -114,4 +123,5 @@
 ---@field expansions LiqUI_Expansion[]
 ---@field inventorySlots LiqUI_InventorySlot[]
 ---@field upgradeSeasons LiqUI_UpgradeSeason[]
----@field craftedSeasonBonusIDs table<number, number>
+---@field craftedItemLevelBonusIDs table<number, LiqUI_CraftedItemLevelBonus>
+---@field craftedQualityLadders LiqUI_CraftedQualityLadder[]

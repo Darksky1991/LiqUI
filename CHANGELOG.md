@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.3.1 - TBD
+
+- Fixed Season 2 crafted max item levels so embed hosts use the current season cap.
+
 ## v1.3.0 - 2026-08-12
 
 - Updated window and table layout saving so size and position persist per window name.

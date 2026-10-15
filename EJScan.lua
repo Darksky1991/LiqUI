@@ -8,6 +8,8 @@ LiqUI.EJScan = LiqUI.EJScan or {
   hosts = {},
   itemCache = {
     seasonID = 0,
+    build = "",
+    version = 0,
     lastUpdate = 0,
     items = {},
   },
@@ -18,13 +20,17 @@ LiqUI.EJScan = LiqUI.EJScan or {
 ---@class LiqUI_EJScan
 local EJScan = LiqUI.EJScan
 local Data = LiqUI.Data
+local Events = LiqUI.Events
 local Utils = LiqUI.Utils
+local _, clientBuild = GetBuildInfo()
+-- Increase when the instance list or this cache changes.
+local version = 5
 
 ---@param bag LiqUI_EJScanCache
 ---@param seasonID number
 ---@return boolean
 local function CacheBagIsComplete(bag, seasonID)
-  if bag.seasonID ~= seasonID or bag.lastUpdate <= 0 then
+  if bag.seasonID ~= seasonID or bag.lastUpdate <= 0 or bag.build ~= clientBuild or bag.version ~= version then
     return false
   end
   local hasUnloadedRow = false
@@ -40,6 +46,8 @@ end
 ---@param source LiqUI_EJScanCache
 local function CopyCache(dest, source)
   dest.seasonID = source.seasonID
+  dest.build = source.build
+  dest.version = source.version
   dest.lastUpdate = source.lastUpdate
   dest.items = Utils.TableCopy(source.items)
 end
@@ -506,7 +514,6 @@ local function ScanFilterRestore(filters)
   end
 end
 
---- Pass 1 done: restore Encounter Journal (pass 2 does not touch EJ).
 ---@param state LiqUI_EJScanState
 local function JournalRestore(state)
   if state.journalPrimedForScan and not state.journalUIWasShown and EncounterJournal and EncounterJournal:IsShown() then
@@ -533,7 +540,6 @@ local function CacheCountProgress(cache)
   return loadedCount, totalCount
 end
 
---- Pass 2 done: stamp cache, clear scan, notify waiters.
 ---@param state LiqUI_EJScanState
 local function CacheLoaded(state)
   if not EJScan.state or EJScan.state.scanId ~= state.scanId then
@@ -545,6 +551,8 @@ local function CacheLoaded(state)
       row.loaded = true
     end
   end)
+  cache.build = clientBuild
+  cache.version = version
   cache.lastUpdate = time()
   EJScan.state = nil
   SyncBoundCaches()
@@ -599,7 +607,6 @@ local function CacheOnItemLoad(itemID, state)
   CacheLoaded(state)
 end
 
---- Pass 2: load every cached item, flag rows in each ContinueOnItemLoad callback.
 ---@param state LiqUI_EJScanState
 local function CacheLoadItems(state)
   local cache = state.cache
@@ -648,11 +655,26 @@ local function CacheLoadItems(state)
   end)
 end
 
+local ScanSchedule
+
+local function OnLootDataReceived()
+  local state = EJScan.state
+  if not state then
+    return
+  end
+  state.lootEvents = state.lootEvents + 1
+end
+
+local function LootListenStop()
+  Events:UnregisterEvent("EJ_LOOT_DATA_RECIEVED", OnLootDataReceived)
+end
+
 local function ScanFinish()
   local state = EJScan.state
   if not state then
     return
   end
+  LootListenStop()
   JournalRestore(state)
   CacheLoadItems(state)
 end
@@ -671,8 +693,6 @@ local function ScanCursorAdvance(state)
     state.encounterIndex = 1
   end
 end
-
-local ScanSchedule
 
 local function ScanStepSchedule()
   local state = EJScan.state
@@ -693,6 +713,19 @@ ScanSchedule = function(expectedScanId)
   end
 
   if state.instanceIndex > #state.instances then
+    if state.pass == 1 and state.lootEvents > 0 then
+      state.pass = 2
+      state.lootEvents = 0
+      state.instanceIndex = 1
+      state.encounterIndex = 1
+      state.step = 0
+      state.activeJournalInstanceID = nil
+      state.activeJournalEncounterID = nil
+      state.activeInstanceType = nil
+      state.cache.items = {}
+      ScanStepSchedule()
+      return
+    end
     ---@type LiqUI_EJScanEvent
     local event = { name = "complete", progress = 1 }
     EventFire(event)
@@ -780,6 +813,7 @@ function EJScan:ScanCancel(reason, restoreJournal)
     return
   end
 
+  LootListenStop()
   EJScan.counter = EJScan.counter + 1
   local state = EJScan.state
   EJScan.state = nil
@@ -837,11 +871,15 @@ function EJScan:ClearCache()
   local cache = self.itemCache
   cache.items = {}
   cache.seasonID = 0
+  cache.build = ""
+  cache.version = 0
   cache.lastUpdate = 0
   Utils.TableForEach(EJScan.hosts, function(host)
     local bag = host.storage
     bag.items = {}
     bag.seasonID = 0
+    bag.build = ""
+    bag.version = 0
     bag.lastUpdate = 0
   end)
   ---@type LiqUI_EJScanEvent
@@ -900,6 +938,8 @@ function EJScan:GetCache()
     classSpecs = classSpecs,
     instanceIndex = 1,
     encounterIndex = 1,
+    pass = 1,
+    lootEvents = 0,
     step = 0,
     totalSteps = ScanMinProgressSteps,
   }
@@ -910,6 +950,8 @@ function EJScan:GetCache()
   JournalPrepare()
   cache.items = {}
   cache.seasonID = 0
+  cache.build = ""
+  cache.version = 0
   cache.lastUpdate = 0
   ---@type LiqUI_EJScanEvent
   local event = { name = "start", progress = 0 }
@@ -928,5 +970,6 @@ function EJScan:GetCache()
   end)
   state.totalSteps = bossCount > 0 and bossCount or ScanMinProgressSteps
 
+  Events:RegisterEvent("EJ_LOOT_DATA_RECIEVED", OnLootDataReceived, true)
   ScanStepSchedule()
 end

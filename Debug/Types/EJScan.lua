@@ -4,6 +4,8 @@
 
 ---@class LiqUI_EJScanCache
 ---@field seasonID number
+---@field build string
+---@field version number
 ---@field lastUpdate number
 ---@field items table<number, LiqUI_EJScanCacheItem>
 
@@ -60,6 +62,8 @@
 ---@field classSpecs LiqUI_EJScanClassSpec[]
 ---@field instanceIndex number
 ---@field encounterIndex number
+---@field pass number
+---@field lootEvents number
 ---@field step number
 ---@field totalSteps number
 

@@ -18,6 +18,7 @@ Data.raids = {
   {seasonID = 17, seasonDisplayID = 1, instanceID = 1592, journalInstanceID = 1305, order = 4, numEncounters = 1, encounters = {}, loot = {}, modifiedInstanceInfo = nil, abbr = "SF",  name = "Sporefall"},
   {seasonID = 18, seasonDisplayID = 2, instanceID = 2987, journalInstanceID = 1317, order = 1, numEncounters = 1, encounters = {}, loot = {}, modifiedInstanceInfo = nil, abbr = "TG",  name = "The Tidebound Grotto"},
   {seasonID = 18, seasonDisplayID = 2, instanceID = 3004, journalInstanceID = 1320, order = 2, numEncounters = 8, encounters = {}, loot = {}, modifiedInstanceInfo = nil, abbr = "VA",  name = "The Venomous Abyss"},
+  {seasonID = 18, seasonDisplayID = 2, instanceID = 3095, journalInstanceID = 1324, order = 3, numEncounters = 1, encounters = {}, loot = {}, modifiedInstanceInfo = nil, abbr = "UK",  name = "The Unbinding of Kith'ix"},
 }
 
 ---@type LiqUI_RaidDifficulty[]

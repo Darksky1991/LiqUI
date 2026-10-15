@@ -2,6 +2,7 @@
 
 ## v1.3.1 - TBD
 
+- Added The Unbinding of Kith'ix to Season 2.
 - Updated TOC number to support patch 12.1.5.
 - Fixed Season 2 crafted max item levels so embed hosts use the current season cap.
 

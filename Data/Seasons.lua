@@ -13,7 +13,7 @@ local TableGet = LiqUI.Utils.TableGet
 ---@type LiqUI_Season[]
 Data.seasons = {
   {seasonID = 17, seasonDisplayID = 1, expansionID = Enum.ExpansionLevel.Midnight, name = "Midnight - Season 1", description = "The Voidspire, March on Quel'Danas, The Dreamrift, Sporefall"},
-  {seasonID = 18, seasonDisplayID = 2, expansionID = Enum.ExpansionLevel.Midnight, name = "Midnight - Season 2", description = "The Tidebound Grotto, The Venomous Abyss"},
+  {seasonID = 18, seasonDisplayID = 2, expansionID = Enum.ExpansionLevel.Midnight, name = "Midnight - Season 2", description = "The Tidebound Grotto, The Venomous Abyss, The Unbinding of Kith'ix"},
 }
 
 ---@return LiqUI_Season[]

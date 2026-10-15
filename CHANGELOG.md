@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.3.1 - TBD
+## v1.3.1 - 2026-10-15
 
 - Added The Unbinding of Kith'ix to Season 2.
 - Updated TOC number to support patch 12.1.5.

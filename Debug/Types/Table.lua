@@ -106,3 +106,13 @@
 ---@field layoutSize LiqUI_TableLayoutSize
 ---@field db LiqUI_TableDB
 ---@field sortState LiqUI_TableSortState
+---@field GetActiveColumns fun(self: LiqUI_TableInstance): LiqUI_TableOptionsColumn[]
+---@field Render fun(self: LiqUI_TableInstance)
+---@field ScrollToTop fun(self: LiqUI_TableInstance)
+---@field SetData fun(self: LiqUI_TableInstance, data: LiqUI_TableData)
+---@field SetColumns fun(self: LiqUI_TableInstance, columns: LiqUI_TableOptionsColumn[])
+---@field SetColumnHidden fun(self: LiqUI_TableInstance, columnId: string, hidden: boolean)
+---@field GetSortState fun(self: LiqUI_TableInstance): LiqUI_TableSortState
+---@field SetSortState fun(self: LiqUI_TableInstance, columnId: string|nil, direction: "asc"|"desc"|nil)
+---@field SetRowHeight fun(self: LiqUI_TableInstance, height: number)
+---@field GetSize fun(self: LiqUI_TableInstance): number, number

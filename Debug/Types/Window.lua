@@ -1,10 +1,12 @@
+---@alias LiqUI_MenuGenerator fun(ownerRegion: Region, rootMenu: RootMenuDescriptionProxy, ...)
+
 ---@class LiqUI_WindowTitlebarButton
 ---@field name string
 ---@field icon string
 ---@field tooltipTitle string
 ---@field tooltipDescription string
 ---@field onClick function?
----@field onMenu fun(window: LiqUI_WindowInstance, rootMenu: table)?
+---@field onMenu fun(window: LiqUI_WindowInstance, rootMenu: RootMenuDescriptionProxy)?
 ---@field size number?
 ---@field iconSize number?
 ---@field enabled boolean?
@@ -15,22 +17,52 @@
 ---@field topLeftX number
 ---@field topLeftY number
 
+---@class LiqUI_WindowTitlebarDropdownButton : DropdownButton
+---@field Icon Texture
+---@field menuGenerator LiqUI_MenuGenerator?
+
+---@class LiqUI_WindowTitlebar : Frame
+---@field icon Texture
+---@field title FontString
+---@field CloseButton Button
+---@field SettingsButton LiqUI_WindowTitlebarDropdownButton
+
 ---@class LiqUI_WindowInstance : Frame
 ---@field options LiqUI_WindowOptions
 ---@field db LiqUI_WindowDB|nil
----@field titlebar Frame?
----@field body LiqUI_WindowBody?
----@field overlay LiqUI_WindowOverlay?
+---@field titlebar LiqUI_WindowTitlebar
+---@field body LiqUI_WindowBody
+---@field overlay LiqUI_WindowOverlay
 ---@field overlayLastShowOptions LiqUI_WindowOverlayOptions|nil
----@field border Frame?
+---@field border (Frame & BackdropTemplate)?
 ---@field titlebarButtons Frame[]
 ---@field width number?
 ---@field height number?
+---@field Close fun(self: LiqUI_WindowInstance)
+---@field Toggle fun(self: LiqUI_WindowInstance, state: boolean?)
+---@field SetTitle fun(self: LiqUI_WindowInstance, title: string)
+---@field SetBodySize fun(self: LiqUI_WindowInstance, width: number, height: number)
+---@field ShowOverlay fun(self: LiqUI_WindowInstance, text: string|nil, progress: number|nil, showOptions: LiqUI_WindowOverlayOptions|nil)
+---@field HideOverlay fun(self: LiqUI_WindowInstance)
+---@field IsOverlayShown fun(self: LiqUI_WindowInstance): boolean
+---@field AddTitlebarButton fun(self: LiqUI_WindowInstance, buttonConfig: LiqUI_WindowTitlebarButton): Frame
+---@field RemoveTitlebarButton fun(self: LiqUI_WindowInstance, buttonName: string)
+---@field GetTitlebarButton fun(self: LiqUI_WindowInstance, buttonName: string): Frame?
+---@field GetWindowScale fun(self: LiqUI_WindowInstance): number
+---@field SetWindowScale fun(self: LiqUI_WindowInstance, scalePercent: number)
+---@field GetWindowColor fun(self: LiqUI_WindowInstance): ColorTable?
+---@field SetWindowColor fun(self: LiqUI_WindowInstance, color: ColorTable)
+---@field GetBorderShown fun(self: LiqUI_WindowInstance): boolean
+---@field SetBorderShown fun(self: LiqUI_WindowInstance, shown: boolean)
+---@field ApplySettings fun(self: LiqUI_WindowInstance)
+---@field SaveSettings fun(self: LiqUI_WindowInstance)
+---@field Render fun(self: LiqUI_WindowInstance)
+---@field AppendWindowOptionsMenu fun(self: LiqUI_WindowInstance, rootMenu: RootMenuDescriptionProxy, onRefresh: fun()|nil)
 
 ---@class LiqUI_WindowBody : Frame
 ---@field scrollArea LiqUI_ScrollArea?
----@field textBox Frame?
----@field scrollBar Frame?
+---@field textBox ScrollingEditBoxTemplate?
+---@field scrollBar MinimalScrollBar?
 
 ---@class LiqUI_WindowDB
 ---@field point LiqUI_WindowPointPersisted?
@@ -59,7 +91,7 @@
 ---@field overlayTextColor ColorTable?
 ---@field overlayBackgroundColor ColorTable?
 ---@field titlebarButtons LiqUI_WindowTitlebarButton[]?
----@field onSettingsMenu fun(window: LiqUI_WindowInstance, rootMenu: table)?
+---@field onSettingsMenu fun(window: LiqUI_WindowInstance, rootMenu: RootMenuDescriptionProxy)?
 ---@field onClose fun(window: LiqUI_WindowInstance)?
 ---@field onShow fun(window: LiqUI_WindowInstance)?
 

@@ -1,0 +1,47 @@
+---@class LiqUI_ButtonInstance : Button, BackdropTemplate
+---@field options LiqUI_ButtonResolvedOptions
+---@field Left Texture
+---@field Middle Texture
+---@field Right Texture
+---@field Text FontString
+---@field isPressed boolean?
+
+---@class LiqUI_ButtonOptions
+---@field parent Frame?
+---@field name string
+---@field text string?
+---@field width number?
+---@field height number?
+---@field padding number?
+---@field maxWidth number?
+---@field enabled boolean?
+---@field backgroundColor ColorTable?
+---@field backgroundColorHover ColorTable?
+---@field backgroundColorPressed ColorTable?
+---@field backgroundColorDisabled ColorTable?
+---@field borderColor ColorTable?
+---@field borderColorHighlight ColorTable?
+---@field borderColorDisabled ColorTable?
+---@field textColor ColorTable?
+---@field textColorDisabled ColorTable?
+---@field onClick function?
+
+---@class LiqUI_ButtonResolvedOptions
+---@field parent Frame?
+---@field name string?
+---@field text string
+---@field width number?
+---@field height number
+---@field padding number
+---@field maxWidth number?
+---@field enabled boolean
+---@field backgroundColor ColorTable
+---@field backgroundColorHover ColorTable
+---@field backgroundColorPressed ColorTable
+---@field backgroundColorDisabled ColorTable
+---@field borderColor ColorTable
+---@field borderColorHighlight ColorTable
+---@field borderColorDisabled ColorTable
+---@field textColor ColorTable
+---@field textColorDisabled ColorTable
+---@field onClick function?

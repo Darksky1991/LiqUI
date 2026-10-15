@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.3.1 - 2026-10-15
+
+- Added The Unbinding of Kith'ix to Season 2.
+- Updated TOC number to support patch 12.1.5.
+- Fixed Season 2 crafted max item levels so embed hosts use the current season cap.
+- Fixed specialization lists on the first loot scan after the client starts.
+
 ## v1.3.0 - 2026-08-12
 
 - Updated window and table layout saving so size and position persist per window name.

@@ -1,5 +1,12 @@
 ---@alias ColorTable { r: number, g: number, b: number, a: number }
 
+---@class LiqUI_LabelAnchor
+---@field point FramePoint?
+---@field relativeTo Region?
+---@field relativePoint FramePoint?
+---@field x number?
+---@field y number?
+
 ---@class LiqUI_Constants
 
 ---@class LiqUI_DB
@@ -19,10 +26,16 @@
 ---@field Mixins LiqUI_Mixins
 ---@field Constants LiqUI_Constants
 ---@field Logger LiqUI_Logger
+---@field Events LiqUI_Events
+---@field Data LiqUI_Data
+---@field EJScan LiqUI_EJScan
 ---@field elements table<string, fun(options: table): any>
 ---@field created table<string, table<string, any>>
 ---@field registeredAddons table<string, LiqUI_RegisteredAddon>
 ---@field minor number
+
+---@class LiqUI_HighlightMixin : Frame
+---@field Highlight Texture?
 
 ---@class LiqUI_Mixins
 ---@field Highlight LiqUI_HighlightMixin
